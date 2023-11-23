@@ -1,16 +1,15 @@
 package logging
 
 import (
-	u "AiOS-installer/utils"
 	"bytes"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/exec"
-//	"strconv"
 	"strings"
-//	"time"
+
+	u "github.com/onepif/go-utils"
 )
 
 const (
