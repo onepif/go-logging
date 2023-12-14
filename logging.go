@@ -88,6 +88,10 @@ func (self *TLogInit) Init() () {
 }
 
 func Alert(e error, level string, msg *string) {
+	if level == "" {
+		if e != nil { level = "error" } else { level = "info" }
+	}
+
 	if LOGLEVELS[logLevel] >= LOGLEVELS[level] {
 		if level == "notset" {
 			if *verbose { GroupLogger[level].Term.Printf("%s", *msg) }
