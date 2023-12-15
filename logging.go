@@ -89,7 +89,7 @@ func (self *TLogInit) Init() () {
 
 func Alert(e error, level string, msg *string) {
 	if level == "" {
-		if e != nil { level = "error" } else { level = "info" }
+		if e != nil { level = "warn" } else { level = "info" }
 	}
 
 	if LOGLEVELS[logLevel] >= LOGLEVELS[level] {
