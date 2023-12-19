@@ -150,7 +150,7 @@ func Alert(a *TlogAlert) {
 			groupLogger[a.level].File.Printf("%s", a.msg)
 		} else {
 			if a.e != nil {
-				if li.verbose { groupLogger[a.level].Term.Printf("%s [ %s%v%s ]\n", a.msg, u.BROWN, e, u.RESET) }
+				if li.verbose { groupLogger[a.level].Term.Printf("%s [ %s%v%s ]\n", a.msg, u.BROWN, a.e, u.RESET) }
 				groupLogger[a.level].File.Printf("%s [ %v ]\n", a.msg, a.e)
 			} else {
 				if li.verbose { groupLogger[a.level].Term.Println(a.msg) }
