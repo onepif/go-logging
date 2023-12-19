@@ -56,7 +56,7 @@ type TLogDist struct {
 }
 
 type TLogInit struct {
-	verbose *bool
+	verbose bool
 	logLevel string
 	fd *os.File
 }
@@ -82,8 +82,8 @@ func Set (v Settinger) {
 	v.set()
 }
 
-func (v *Tverbose) set() {
-	*li.verbose = bool(*v)
+func (v Tverbose) set() {
+	li.verbose = bool(v)
 }
 
 func (l TlogLevel) set() {
