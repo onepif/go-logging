@@ -94,15 +94,15 @@ func (f *Tfile) set() {
 	*li.fd = os.File(*f)
 }
 
-func GetVerbose() Tverbose {
+func GetVerbose() bool {
 	return *li.verbose
 }
 
-func GetLogLevel() TlogLevel {
+func GetLogLevel() string {
 	return li.logLevel
 }
 
-func GetFd() *Tfile {
+func GetFd() *os.File {
 	return li.fd
 }
 
@@ -116,7 +116,7 @@ func (self *TLogInit) New() {
 		if ix == "notset" {
 			groupLogger[ix] = TLogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s..%s ] ", u.GREEN, u.RESET), log.Lmsgprefix),
-				log.New(os.File(li.fd), "[ .. ] ", log.Lmsgprefix),
+				log.New(li.fd, "[ .. ] ", log.Lmsgprefix),
 			}
 		} else {
 			groupLogger[ix] = TLogDist {
