@@ -52,13 +52,13 @@ var (
 )
 
 type TLogDist struct {
-	Term, File	*log.Logger
+	Term, File *log.Logger
 }
 
 type TLogInit struct {
-	verbose		*Tverbose
-	logLevel	TlogLevel
-	fd			*Tfile
+	verbose *bool
+	logLevel string
+	fd *os.File
 }
 
 type TttySize struct {
@@ -83,15 +83,15 @@ func Set (v Settinger) {
 }
 
 func (v *Tverbose) set() {
-	li.verbose = v
+	*li.verbose = bool(*v)
 }
 
 func (l TlogLevel) set() {
-	li.logLevel = l
+	li.logLevel = string(l)
 }
 
 func (f *Tfile) set() {
-	li.fd = f
+	*li.fd = os.File(*f)
 }
 
 func GetVerbose() Tverbose {
@@ -132,7 +132,7 @@ func Alert(e error, level string, msg *string) {
 		if e != nil { level = "warn" } else { level = "info" }
 	}
 
-	if LOGLEVELS[li.logLevel] >= LOGLEVELS[level] {
+	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[level] {
 		if level == "notset" {
 			if *li.verbose { groupLogger[level].Term.Printf("%s", *msg) }
 			groupLogger[level].File.Printf("%s", *msg)
@@ -156,7 +156,7 @@ func (self *TLogShell) ShellExec(command *string) (*string, error) {
 	cmd.Stdin = os.Stdin
 	if li.fd != nil {
 		cmd.Stdout = io.MultiWriter(&buf, li.fd)
-		if *li.verbose { cmd.Stderr = io.MultiWriter(os.Stderr, fd) } else { cmd.Stderr = li.fd}
+		if *li.verbose { cmd.Stderr = io.MultiWriter(os.Stderr, li.fd) } else { cmd.Stderr = li.fd}
 	} else {
 		cmd.Stdout = &buf
 		if *li.verbose { cmd.Stderr = os.Stderr }
