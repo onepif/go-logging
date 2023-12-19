@@ -68,9 +68,9 @@ type TlogShell struct {
 }
 
 type TlogAlert struct {
-	e error
-	level string
-	msg string
+	E error
+	Level string
+	Msg string
 }
 
 type Settinger interface {
@@ -140,21 +140,21 @@ func (self *TlogInit) New() {
 
 //func Alert(e error, level string, msg *string) {
 func Alert(a *TlogAlert) {
-	if a.level == "" {
-		if a.e != nil { a.level = "warn" } else { a.level = "info" }
+	if a.Level == "" {
+		if a.E != nil { a.Level = "warn" } else { a.Level = "info" }
 	}
 
-	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[a.level] {
-		if a.level == "notset" {
-			if li.verbose { groupLogger[a.level].Term.Printf("%s", a.msg) }
-			groupLogger[a.level].File.Printf("%s", a.msg)
+	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[a.Level] {
+		if a.Level == "notset" {
+			if li.verbose { groupLogger[a.Level].Term.Printf("%s", a.Msg) }
+			groupLogger[a.Level].File.Printf("%s", a.Msg)
 		} else {
-			if a.e != nil {
-				if li.verbose { groupLogger[a.level].Term.Printf("%s [ %s%v%s ]\n", a.msg, u.BROWN, a.e, u.RESET) }
-				groupLogger[a.level].File.Printf("%s [ %v ]\n", a.msg, a.e)
+			if a.E != nil {
+				if li.verbose { groupLogger[a.Level].Term.Printf("%s [ %s%v%s ]\n", a.Msg, u.BROWN, a.E, u.RESET) }
+				groupLogger[a.Level].File.Printf("%s [ %v ]\n", a.Msg, a.E)
 			} else {
-				if li.verbose { groupLogger[a.level].Term.Println(a.msg) }
-				groupLogger[a.level].File.Println(a.msg)
+				if li.verbose { groupLogger[a.Level].Term.Println(a.Msg) }
+				groupLogger[a.Level].File.Println(a.Msg)
 			}
 		}
 	}
