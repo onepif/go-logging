@@ -43,19 +43,16 @@ var (
 		"trace":	TRACE,
 		"skip":		SKIP,
 	}
-	groupLogger = make(map[string]TLogDist)
+	groupLogger = make(map[string]TlogDist)
 
-	li = new(TLogInit)
-/*	verbose	*bool
-	logLevel string
-	fd		*os.File*/
+	li = new(TlogInit)
 )
 
-type TLogDist struct {
+type TlogDist struct {
 	Term, File *log.Logger
 }
 
-type TLogInit struct {
+type TlogInit struct {
 	verbose bool
 	logLevel string
 	fd *os.File
@@ -65,13 +62,23 @@ type TttySize struct {
 	X, Y int
 }
 
-type TLogShell struct {
+type TlogShell struct {
 	Shell	string
 	TTYsize TttySize
 }
 
+type TlogAlert struct {
+	e error
+	level string
+	msg string
+}
+
 type Settinger interface {
 	set()
+}
+
+type Tverb struct {
+	verb bool
 }
 
 type Tverbose bool
@@ -80,6 +87,10 @@ type Tfile os.File
 
 func Set (v Settinger) {
 	v.set()
+}
+
+func (v Tverb) set() {
+	li.verbose = v.verb
 }
 
 func (v Tverbose) set() {
@@ -106,7 +117,7 @@ func GetFd() *os.File {
 	return li.fd
 }
 
-func (self *TLogInit) New() {
+func (self *TlogInit) New() {
 /*	verbose = self.Verbose
 	logLevel = self.LogLevel
 	fd = self.Fd*/
@@ -114,12 +125,12 @@ func (self *TLogInit) New() {
 
 	for ix, _ := range LOGLEVELS {
 		if ix == "notset" {
-			groupLogger[ix] = TLogDist {
+			groupLogger[ix] = TlogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s..%s ] ", u.GREEN, u.RESET), log.Lmsgprefix),
 				log.New(li.fd, "[ .. ] ", log.Lmsgprefix),
 			}
 		} else {
-			groupLogger[ix] = TLogDist {
+			groupLogger[ix] = TlogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s%s%s%s ] - ", colorlvl[ix], u.BOLD, strings.ToUpper(ix), u.RESET), log.Ltime|log.Lmsgprefix),
 				log.New(li.fd, fmt.Sprintf("[ %s ] - ", strings.ToUpper(ix)), log.Ltime|log.Lmsgprefix),
 			}
@@ -127,28 +138,29 @@ func (self *TLogInit) New() {
 	}
 }
 
-func Alert(e error, level string, msg *string) {
-	if level == "" {
-		if e != nil { level = "warn" } else { level = "info" }
+//func Alert(e error, level string, msg *string) {
+func Alert(a *TlogAlert) {
+	if a.level == "" {
+		if a.e != nil { a.level = "warn" } else { a.level = "info" }
 	}
 
-	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[level] {
-		if level == "notset" {
-			if li.verbose { groupLogger[level].Term.Printf("%s", *msg) }
-			groupLogger[level].File.Printf("%s", *msg)
+	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[a.level] {
+		if a.level == "notset" {
+			if li.verbose { groupLogger[a.level].Term.Printf("%s", a.msg) }
+			groupLogger[a.level].File.Printf("%s", a.msg)
 		} else {
-			if e != nil {
-				if li.verbose { groupLogger[level].Term.Printf("%s [ %s%v%s ]\n", *msg, u.BROWN, e, u.RESET) }
-				groupLogger[level].File.Printf("%s [ %v ]\n", *msg, e)
+			if a.e != nil {
+				if li.verbose { groupLogger[a.level].Term.Printf("%s [ %s%v%s ]\n", a.msg, u.BROWN, e, u.RESET) }
+				groupLogger[a.level].File.Printf("%s [ %v ]\n", a.msg, a.e)
 			} else {
-				if li.verbose { groupLogger[level].Term.Println(*msg) }
-				groupLogger[level].File.Println(*msg)
+				if li.verbose { groupLogger[a.level].Term.Println(a.msg) }
+				groupLogger[a.level].File.Println(a.msg)
 			}
 		}
 	}
 }
 
-func (self *TLogShell) ShellExec(command *string) (*string, error) {
+func (self *TlogShell) ShellExec(command *string) (*string, error) {
 	var buf bytes.Buffer
 
 	cmd := exec.Command(self.Shell, "-c", *command)
@@ -169,7 +181,7 @@ func (self *TLogShell) ShellExec(command *string) (*string, error) {
 	return &str, e
 }
 
-func (self *TLogShell) Dialog(command, backTitle, title, textBox *string, typeBox string) error {
+func (self *TlogShell) Dialog(command, backTitle, title, textBox *string, typeBox string) error {
 	var (
 		r	*io.PipeReader
 		w	*io.PipeWriter
@@ -216,11 +228,11 @@ func (self *TLogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 	return cmd.Run()
 }
 
-func (self *TLogShell) DialogExec(command, backTitle, textBox *string) error {
+func (self *TlogShell) DialogExec(command, backTitle, textBox *string) error {
 	return self.Dialog(command, backTitle, new(string), textBox, "progressbox")
 }
 
-func (self *TLogShell) DialogInfo(backTitle, title, textBox *string) error {
+func (self *TlogShell) DialogInfo(backTitle, title, textBox *string) error {
 	cmd := fmt.Sprintf(`dialog --stdout --backtitle "%s" --title "%s" --infobox "%s" %d %d`,
 		*backTitle,
 		*title,
@@ -232,7 +244,7 @@ func (self *TLogShell) DialogInfo(backTitle, title, textBox *string) error {
 //	return self.Dialog(new(string), backTitle, title, textBox, "infobox")
 }
 
-func (self *TLogShell) DialogYesNo(backTitle, textBox *string) error {
+func (self *TlogShell) DialogYesNo(backTitle, textBox *string) error {
 	cmd := fmt.Sprintf(`dialog --stdout --backtitle "%s" --yesno "%s" %d %d`,
 		*backTitle,
 		*textBox,
@@ -243,7 +255,7 @@ func (self *TLogShell) DialogYesNo(backTitle, textBox *string) error {
 //	return self.Dialog(new(string), backTitle, new(string), textBox, "yesno")
 }
 
-func (self *TLogShell) DialogMsgBox(backTitle, title, textBox *string) error {
+func (self *TlogShell) DialogMsgBox(backTitle, title, textBox *string) error {
 	cmd := fmt.Sprintf(`dialog --stdout --backtitle "%s" --title "%s" --msgbox "%s" %d %d`,
 		*backTitle,
 		*title,
@@ -257,7 +269,7 @@ func (self *TLogShell) DialogMsgBox(backTitle, title, textBox *string) error {
 //	return self.Dialog(new(string), backTitle, title, textBox, "mbox")
 }
 
-func (self *TLogShell) DialogCheckList(backTitle, title, textBox, extField *string) (*string, error) {
+func (self *TlogShell) DialogCheckList(backTitle, title, textBox, extField *string) (*string, error) {
 	cmd := fmt.Sprintf(`dialog --stdout --title "%s" --backtitle "%s" --no-tags --checklist "%s" %d %d 0 %s`,
 		*title,
 		*backTitle,
@@ -268,7 +280,7 @@ func (self *TLogShell) DialogCheckList(backTitle, title, textBox, extField *stri
 	return self.ShellExec(&cmd)
 }
 
-func (self *TLogShell) DialogInputBox(backTitle, title, textBox, extField *string) (*string, error) {
+func (self *TlogShell) DialogInputBox(backTitle, title, textBox, extField *string) (*string, error) {
 	cmd := fmt.Sprintf(`dialog --stdout --title "%s" --backtitle "%s" --no-tags --inputbox "%s" %d %d %s`,
 		*title,
 		*backTitle,
