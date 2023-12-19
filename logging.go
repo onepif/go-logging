@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	colorlvl = map[string]string {
+	colorlvl = map[TlogLevel]string {
 		"error":	u.RED,
 		"warn":		u.BROWN,
 		"info":		u.GREEN,
@@ -43,7 +43,7 @@ var (
 		"trace":	TRACE,
 		"skip":		SKIP,
 	}
-	GroupLogger = make(map[string]TLogDist)
+	groupLogger = make(map[TlogLevel]TLogDist)
 
 	li = new(TLogInit)
 /*	verbose	*bool
@@ -94,15 +94,15 @@ func (f *Tfile) set() {
 	li.fd = f
 }
 
-func GetVerbose() bool {
+func GetVerbose() Tverbose {
 	return *li.verbose
 }
 
-func GetLogLevel() string {
+func GetLogLevel() TlogLevel {
 	return li.logLevel
 }
 
-func GetFd() *os.File {
+func GetFd() *Tfile {
 	return li.fd
 }
 
@@ -114,14 +114,14 @@ func (self *TLogInit) New() {
 
 	for ix, _ := range LOGLEVELS {
 		if ix == "notset" {
-			GroupLogger[ix] = TLogDist {
+			groupLogger[ix] = TLogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s..%s ] ", u.GREEN, u.RESET), log.Lmsgprefix),
-				log.New(fd, "[ .. ] ", log.Lmsgprefix),
+				log.New(li.fd, "[ .. ] ", log.Lmsgprefix),
 			}
 		} else {
-			GroupLogger[ix] = TLogDist {
+			groupLogger[ix] = TLogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s%s%s%s ] - ", colorlvl[ix], u.BOLD, strings.ToUpper(ix), u.RESET), log.Ltime|log.Lmsgprefix),
-				log.New(fd, fmt.Sprintf("[ %s ] - ", strings.ToUpper(ix)), log.Ltime|log.Lmsgprefix),
+				log.New(li.fd, fmt.Sprintf("[ %s ] - ", strings.ToUpper(ix)), log.Ltime|log.Lmsgprefix),
 			}
 		}
 	}
@@ -134,15 +134,15 @@ func Alert(e error, level string, msg *string) {
 
 	if LOGLEVELS[li.logLevel] >= LOGLEVELS[level] {
 		if level == "notset" {
-			if *li.verbose { GroupLogger[level].Term.Printf("%s", *msg) }
-			GroupLogger[level].File.Printf("%s", *msg)
+			if *li.verbose { groupLogger[level].Term.Printf("%s", *msg) }
+			groupLogger[level].File.Printf("%s", *msg)
 		} else {
 			if e != nil {
-				if *li.verbose { GroupLogger[level].Term.Printf("%s [ %s%v%s ]\n", *msg, u.BROWN, e, u.RESET) }
-				GroupLogger[level].File.Printf("%s [ %v ]\n", *msg, e)
+				if *li.verbose { groupLogger[level].Term.Printf("%s [ %s%v%s ]\n", *msg, u.BROWN, e, u.RESET) }
+				groupLogger[level].File.Printf("%s [ %v ]\n", *msg, e)
 			} else {
-				if *li.verbose { GroupLogger[level].Term.Println(*msg) }
-				GroupLogger[level].File.Println(*msg)
+				if *li.verbose { groupLogger[level].Term.Println(*msg) }
+				groupLogger[level].File.Println(*msg)
 			}
 		}
 	}
