@@ -13,12 +13,14 @@ import (
 )
 
 const (
-	NOTSET	int = 0
-	ERROR 	int = 1
-	WARN 	int = 2
-	INFO 	int = 3
-	DEBUG 	int = 4
-	TRACE 	int = 5
+	NOTSET	int = iota
+	ERROR
+	WARN
+	INFO
+	DEBUG
+	DEBUGEXT
+	TRACE
+
 	SKIP	int = 99
 )
 
@@ -28,6 +30,7 @@ var (
 		"warn":		u.BROWN,
 		"info":		u.GREEN,
 		"debug":	u.CYAN,
+		"debugext":	u.PURPLE,
 		"trace":	u.BLUE,
 	}
 	LOGLEVELS = map[TlogLevel]int {
@@ -36,6 +39,7 @@ var (
 		"warn":		WARN,
 		"info":		INFO,
 		"debug":	DEBUG,
+		"debugext":	DEBUGEXT,
 		"trace":	TRACE,
 		"skip":		SKIP,
 	}
