@@ -95,7 +95,7 @@ func (f *Tfile) set() {
 }
 
 func GetVerbose() bool {
-	return *li.verbose
+	return li.verbose
 }
 
 func GetLogLevel() string {
@@ -134,14 +134,14 @@ func Alert(e error, level string, msg *string) {
 
 	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[level] {
 		if level == "notset" {
-			if *li.verbose { groupLogger[level].Term.Printf("%s", *msg) }
+			if li.verbose { groupLogger[level].Term.Printf("%s", *msg) }
 			groupLogger[level].File.Printf("%s", *msg)
 		} else {
 			if e != nil {
-				if *li.verbose { groupLogger[level].Term.Printf("%s [ %s%v%s ]\n", *msg, u.BROWN, e, u.RESET) }
+				if li.verbose { groupLogger[level].Term.Printf("%s [ %s%v%s ]\n", *msg, u.BROWN, e, u.RESET) }
 				groupLogger[level].File.Printf("%s [ %v ]\n", *msg, e)
 			} else {
-				if *li.verbose { groupLogger[level].Term.Println(*msg) }
+				if li.verbose { groupLogger[level].Term.Println(*msg) }
 				groupLogger[level].File.Println(*msg)
 			}
 		}
@@ -156,10 +156,10 @@ func (self *TLogShell) ShellExec(command *string) (*string, error) {
 	cmd.Stdin = os.Stdin
 	if li.fd != nil {
 		cmd.Stdout = io.MultiWriter(&buf, li.fd)
-		if *li.verbose { cmd.Stderr = io.MultiWriter(os.Stderr, li.fd) } else { cmd.Stderr = li.fd}
+		if li.verbose { cmd.Stderr = io.MultiWriter(os.Stderr, li.fd) } else { cmd.Stderr = li.fd}
 	} else {
 		cmd.Stdout = &buf
-		if *li.verbose { cmd.Stderr = os.Stderr }
+		if li.verbose { cmd.Stderr = os.Stderr }
 	}
 
 	e := cmd.Run()
@@ -175,7 +175,7 @@ func (self *TLogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 		w	*io.PipeWriter
 	)
 
-	if ! *li.verbose {
+	if ! li.verbose {
 		r, w = io.Pipe()
 		defer r.Close()
 	}
@@ -184,7 +184,7 @@ func (self *TLogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
 	if li.fd != nil {
-		if *li.verbose {
+		if li.verbose {
 			cmd.Stdout = io.MultiWriter(os.Stdout, li.fd)
 			cmd.Stderr = io.MultiWriter(os.Stderr, li.fd)
 		} else {
@@ -193,7 +193,7 @@ func (self *TLogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 			cmd.Stderr = li.fd
 		}
 	} else {
-		if *li.verbose {
+		if li.verbose {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 		} else {
@@ -202,7 +202,7 @@ func (self *TLogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 		}
 	}
 
-	if ! *li.verbose {
+	if ! li.verbose {
 		go func() {
 			//--no-tags 
 			cmd := exec.Command(self.Shell, "-c", fmt.Sprintf("dialog --stdout --backtitle \"%s\" --title \"%s\" --%s \"%s\" %d %d", *backTitle, *title, typeBox, *textBox, self.TTYsize.Y, self.TTYsize.X))
