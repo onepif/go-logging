@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	colorlvl = map[TlogLevel]string {
+	colorlvl = map[string]string {
 		"error":	u.RED,
 		"warn":		u.BROWN,
 		"info":		u.GREEN,
@@ -33,7 +33,7 @@ var (
 		"debugext":	u.PURPLE,
 		"trace":	u.BLUE,
 	}
-	LOGLEVELS = map[TlogLevel]int {
+	LOGLEVELS = map[string]int {
 		"notset":	NOTSET,
 		"error":	ERROR,
 		"warn":		WARN,
@@ -43,7 +43,7 @@ var (
 		"trace":	TRACE,
 		"skip":		SKIP,
 	}
-	groupLogger = make(map[TlogLevel]TLogDist)
+	groupLogger = make(map[string]TLogDist)
 
 	li = new(TLogInit)
 /*	verbose	*bool
@@ -116,7 +116,7 @@ func (self *TLogInit) New() {
 		if ix == "notset" {
 			groupLogger[ix] = TLogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s..%s ] ", u.GREEN, u.RESET), log.Lmsgprefix),
-				log.New(li.fd, "[ .. ] ", log.Lmsgprefix),
+				log.New(os.File(li.fd), "[ .. ] ", log.Lmsgprefix),
 			}
 		} else {
 			groupLogger[ix] = TLogDist {
