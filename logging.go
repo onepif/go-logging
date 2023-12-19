@@ -58,7 +58,7 @@ type TLogDist struct {
 type TLogInit struct {
 	verbose		*Tverbose
 	logLevel	TlogLevel
-	fd			*TFile
+	fd			*Tfile
 }
 
 type TttySize struct {
@@ -71,7 +71,7 @@ type TLogShell struct {
 }
 
 type Settinger interface {
-	Set()
+	set()
 }
 
 type Tverbose bool
