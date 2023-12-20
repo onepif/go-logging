@@ -130,7 +130,7 @@ func New(self *TlogInit) {
 //func Alert(e error, level string, msg *string) {
 func Alert(self *TlogAlert) {
 	if self.Level == "" {
-		if self.E != nil { self.Level = "warn" } else { self.Level = "info" }
+		if self.Err != nil { self.Level = "warn" } else { self.Level = "info" }
 	}
 
 	if LOGLEVELS[string(li.LogLevel)] >= LOGLEVELS[self.Level] {
@@ -138,9 +138,9 @@ func Alert(self *TlogAlert) {
 			if li.Verbose { groupLogger[self.Level].Term.Printf("%s", self.Msg) }
 			groupLogger[self.Level].File.Printf("%s", self.Msg)
 		} else {
-			if self.E != nil {
-				if li.Verbose { groupLogger[self.Level].Term.Printf("%s [ %s%v%s ]\n", self.Msg, u.BROWN, self.E, u.RESET) }
-				groupLogger[self.Level].File.Printf("%s [ %v ]\n", self.Msg, self.E)
+			if self.Err != nil {
+				if li.Verbose { groupLogger[self.Level].Term.Printf("%s [ %s%v%s ]\n", self.Msg, u.BROWN, self.Err, u.RESET) }
+				groupLogger[self.Level].File.Printf("%s [ %v ]\n", self.Msg, self.Err)
 			} else {
 				if li.Verbose { groupLogger[self.Level].Term.Println(self.Msg) }
 				groupLogger[self.Level].File.Println(self.Msg)
