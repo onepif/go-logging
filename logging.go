@@ -53,9 +53,9 @@ type TlogDist struct {
 }
 
 type TlogInit struct {
-	verbose bool
-	logLevel string
-	fd *os.File
+	Verbose bool
+	LogLevel string
+	Fd *os.File
 }
 
 type TttySize struct {
@@ -68,7 +68,7 @@ type TlogShell struct {
 }
 
 type TlogAlert struct {
-	E error
+	Err error
 	Level string
 	Msg string
 }
@@ -77,84 +77,73 @@ type Settinger interface {
 	set()
 }
 
-type Tverb struct {
-	verb bool
-}
-
 type Tverbose bool
 type TlogLevel string
 type Tfile os.File
 
-func Set (v Settinger) {
-	v.set()
+func Set (self Settinger) {
+	self.set()
 }
 
-func (v Tverb) set() {
-	li.verbose = v.verb
+func (self Tverbose) set() {
+	li.Verbose = bool(self)
 }
 
-func (v Tverbose) set() {
-	li.verbose = bool(v)
+func (self TlogLevel) set() {
+	li.LogLevel = string(self)
 }
 
-func (l TlogLevel) set() {
-	li.logLevel = string(l)
-}
-
-func (f *Tfile) set() {
-	*li.fd = os.File(*f)
+func (self *Tfile) set() {
+	*li.Fd = os.File(*self)
 }
 
 func GetVerbose() bool {
-	return li.verbose
+	return li.Verbose
 }
 
 func GetLogLevel() string {
-	return li.logLevel
+	return li.LogLevel
 }
 
 func GetFd() *os.File {
-	return li.fd
+	return li.Fd
 }
 
-func (self *TlogInit) New() {
-/*	verbose = self.Verbose
-	logLevel = self.LogLevel
-	fd = self.Fd*/
+func New(self *TlogInit) {
 	li = self
 
 	for ix, _ := range LOGLEVELS {
 		if ix == "notset" {
 			groupLogger[ix] = TlogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s..%s ] ", u.GREEN, u.RESET), log.Lmsgprefix),
-				log.New(li.fd, "[ .. ] ", log.Lmsgprefix),
+				log.New(li.Fd, "[ .. ] ", log.Lmsgprefix),
 			}
 		} else {
 			groupLogger[ix] = TlogDist {
 				log.New(os.Stdout, fmt.Sprintf("[ %s%s%s%s ] - ", colorlvl[ix], u.BOLD, strings.ToUpper(ix), u.RESET), log.Ltime|log.Lmsgprefix),
-				log.New(li.fd, fmt.Sprintf("[ %s ] - ", strings.ToUpper(ix)), log.Ltime|log.Lmsgprefix),
+				log.New(li.Fd, fmt.Sprintf("[ %s ] - ", strings.ToUpper(ix)), log.Ltime|log.Lmsgprefix),
 			}
 		}
 	}
 }
 
 //func Alert(e error, level string, msg *string) {
-func Alert(a *TlogAlert) {
-	if a.Level == "" {
-		if a.E != nil { a.Level = "warn" } else { a.Level = "info" }
+func Alert(self *TlogAlert) {
+	if self.Level == "" {
+		if self.E != nil { self.Level = "warn" } else { self.Level = "info" }
 	}
 
-	if LOGLEVELS[string(li.logLevel)] >= LOGLEVELS[a.Level] {
-		if a.Level == "notset" {
-			if li.verbose { groupLogger[a.Level].Term.Printf("%s", a.Msg) }
-			groupLogger[a.Level].File.Printf("%s", a.Msg)
+	if LOGLEVELS[string(li.LogLevel)] >= LOGLEVELS[self.Level] {
+		if self.Level == "notset" {
+			if li.Verbose { groupLogger[self.Level].Term.Printf("%s", self.Msg) }
+			groupLogger[self.Level].File.Printf("%s", self.Msg)
 		} else {
-			if a.E != nil {
-				if li.verbose { groupLogger[a.Level].Term.Printf("%s [ %s%v%s ]\n", a.Msg, u.BROWN, a.E, u.RESET) }
-				groupLogger[a.Level].File.Printf("%s [ %v ]\n", a.Msg, a.E)
+			if self.E != nil {
+				if li.Verbose { groupLogger[self.Level].Term.Printf("%s [ %s%v%s ]\n", self.Msg, u.BROWN, self.E, u.RESET) }
+				groupLogger[self.Level].File.Printf("%s [ %v ]\n", self.Msg, self.E)
 			} else {
-				if li.verbose { groupLogger[a.Level].Term.Println(a.Msg) }
-				groupLogger[a.Level].File.Println(a.Msg)
+				if li.Verbose { groupLogger[self.Level].Term.Println(self.Msg) }
+				groupLogger[self.Level].File.Println(self.Msg)
 			}
 		}
 	}
@@ -166,12 +155,12 @@ func (self *TlogShell) ShellExec(command *string) (*string, error) {
 	cmd := exec.Command(self.Shell, "-c", *command)
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
-	if li.fd != nil {
-		cmd.Stdout = io.MultiWriter(&buf, li.fd)
-		if li.verbose { cmd.Stderr = io.MultiWriter(os.Stderr, li.fd) } else { cmd.Stderr = li.fd}
+	if li.Fd != nil {
+		cmd.Stdout = io.MultiWriter(&buf, li.Fd)
+		if li.Verbose { cmd.Stderr = io.MultiWriter(os.Stderr, li.Fd) } else { cmd.Stderr = li.Fd}
 	} else {
 		cmd.Stdout = &buf
-		if li.verbose { cmd.Stderr = os.Stderr }
+		if li.Verbose { cmd.Stderr = os.Stderr }
 	}
 
 	e := cmd.Run()
@@ -187,7 +176,7 @@ func (self *TlogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 		w	*io.PipeWriter
 	)
 
-	if ! li.verbose {
+	if ! li.Verbose {
 		r, w = io.Pipe()
 		defer r.Close()
 	}
@@ -195,17 +184,17 @@ func (self *TlogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 	cmd := exec.Command(self.Shell, "-c", *command)
 	cmd.Env = os.Environ()
 	cmd.Stdin = os.Stdin
-	if li.fd != nil {
-		if li.verbose {
-			cmd.Stdout = io.MultiWriter(os.Stdout, li.fd)
-			cmd.Stderr = io.MultiWriter(os.Stderr, li.fd)
+	if li.Fd != nil {
+		if li.Verbose {
+			cmd.Stdout = io.MultiWriter(os.Stdout, li.Fd)
+			cmd.Stderr = io.MultiWriter(os.Stderr, li.Fd)
 		} else {
-			cmd.Stdout = io.MultiWriter(w, li.fd)
-//			cmd.Stderr = io.MultiWriter(w, li.fd) // а надо ли ?? может только в fd??
-			cmd.Stderr = li.fd
+			cmd.Stdout = io.MultiWriter(w, li.Fd)
+//			cmd.Stderr = io.MultiWriter(w, li.Fd) // а надо ли ?? может только в fd??
+			cmd.Stderr = li.Fd
 		}
 	} else {
-		if li.verbose {
+		if li.Verbose {
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 		} else {
@@ -214,7 +203,7 @@ func (self *TlogShell) Dialog(command, backTitle, title, textBox *string, typeBo
 		}
 	}
 
-	if ! li.verbose {
+	if ! li.Verbose {
 		go func() {
 			//--no-tags 
 			cmd := exec.Command(self.Shell, "-c", fmt.Sprintf("dialog --stdout --backtitle \"%s\" --title \"%s\" --%s \"%s\" %d %d", *backTitle, *title, typeBox, *textBox, self.TTYsize.Y, self.TTYsize.X))
