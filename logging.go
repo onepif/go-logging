@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	u "github.com/onepif/go-utils"
+
+	"github.com/leonelquinteros/gotext"
 )
 
 const (
@@ -120,7 +122,7 @@ func New(self *TlogInit) {
 			}
 		} else {
 			groupLogger[ix] = TlogDist {
-				log.New(os.Stdout, fmt.Sprintf("[ %s%s%s%s ] - ", colorlvl[ix], u.BOLD, strings.ToUpper(ix), u.RESET), log.Ltime|log.Lmsgprefix),
+				log.New(os.Stdout, fmt.Sprintf("[ %s%s%s%s ] - ", colorlvl[ix], u.BOLD, strings.ToUpper(gotext.Get(ix)), u.RESET), log.Ltime|log.Lmsgprefix),
 				log.New(li.Fd, fmt.Sprintf("[ %s ] - ", strings.ToUpper(ix)), log.Ltime|log.Lmsgprefix),
 			}
 		}
